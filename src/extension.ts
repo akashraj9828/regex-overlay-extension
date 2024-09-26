@@ -6,70 +6,59 @@ interface SelectorConfig {
 }
 
 let outputChannel: vscode.OutputChannel;
-let debugMode: boolean = true; // Debug flag
+let debugMode: boolean = false; // Debug flag
 
 function log(message: string) {
   if (debugMode) {
     console.log(message);
-    // outputChannel.show(true);
-    // outputChannel.appendLine(message);
+    outputChannel.show(true);
+    outputChannel.appendLine(message);
   }
 }
 
 export function activate(context: vscode.ExtensionContext) {
-  // const decorationType = vscode.window.createTextEditorDecorationType({
-  //   after: {
-  //     contentText: " Your Text Here",
-  //     color: "rgba(255, 0, 0, 0.8)", // Example color
-  //     backgroundColor: "rgba(255, 255, 255, 0.5)", // Optional background
-  //   },
-  // });
-
-  // const editor = vscode.window.activeTextEditor;
-
-  // if (editor) {
-  //   const lineCount = editor.document.lineCount;
-  //   const ranges = [];
-
-  //   for (let i = 0; i < 2; i++) {
-  //     ranges.push(new vscode.Range(i, 0, i, 0)); // Position in the gutter
-  //   }
-
-  //   editor.setDecorations(decorationType, ranges);
-  // }
   outputChannel = vscode.window.createOutputChannel("Regex Overlay", { log: true });
   log("Activating Regex Overlay extension");
   context.subscriptions.push(outputChannel);
 
-  // let disposable = vscode.workspace.onDidOpenTextDocument((document) => {
-  //   if (document.fileName.endsWith(".git")) {
-  //     return; // Ignore .git files
-  //   }
-  //   updateOverlay(document);
-  // });
-  let disposable = vscode.window.onDidChangeActiveTextEditor((editor) => {
+  const isEnabled = () => {
+    return vscode.workspace.getConfiguration("regexOverlay").get("enabled", true) as boolean;
+  };
+
+  const activeTextEditorListner = vscode.window.onDidChangeActiveTextEditor((editor) => {
+    if (!isEnabled()) {
+      return;
+    }
     if (!editor || editor?.document.fileName.endsWith(".git")) {
       return; // Ignore .git files
     }
     updateOverlay(editor.document);
   });
 
-  context.subscriptions.push(disposable);
   // Command to toggle debug mode
-  const toggleDebugCommand = vscode.commands.registerCommand("regexOverlay.toggleDebug", () => {
+  const toggleDebugCommand = vscode.commands.registerCommand("regex-overlay.toggleDebug", () => {
     debugMode = !debugMode;
     vscode.window.showInformationMessage(`Debug mode is now ${debugMode ? "ON" : "OFF"}`);
   });
 
-  context.subscriptions.push(toggleDebugCommand);
-
-  const helloWorldCommand = vscode.commands.registerCommand("regex-overlay.helloWorld", () => {
+  const checkCommand = vscode.commands.registerCommand("regex-overlay.check", () => {
     // The code you place here will be executed every time your command is executed
     // Display a message box to the user
-    vscode.window.showInformationMessage("bla2 bla!");
+    vscode.window.showInformationMessage("Regex Overlay is working");
   });
 
-  context.subscriptions.push(helloWorldCommand);
+  const enableCommand = vscode.commands.registerCommand("regex-overlay.enable", () => {
+    vscode.workspace.getConfiguration("regexOverlay").update("enabled", true);
+    vscode.window.showInformationMessage("Extension Enabled!");
+  });
+
+  // Command to disable the extension
+  const disableCommand = vscode.commands.registerCommand("regex-overlay.disable", () => {
+    vscode.workspace.getConfiguration("regexOverlay").update("enabled", false);
+    vscode.window.showInformationMessage("Extension Disabled!");
+  });
+
+  context.subscriptions.push(activeTextEditorListner, toggleDebugCommand, checkCommand, enableCommand, disableCommand);
 
   // Initial update for the active editor
   if (vscode.window.activeTextEditor) {
@@ -81,24 +70,23 @@ export function activate(context: vscode.ExtensionContext) {
 
 function updateOverlay(document: vscode.TextDocument) {
   log(`Updating overlay for file: ${document.fileName}`);
+  const config = vscode.workspace.getConfiguration("regexOverlay");
+  const selectorConfigs: SelectorConfig[] = config.get("selectorConfigs", []);
 
-  //   const config = vscode.workspace.getConfiguration("regexOverlay");
-  //   const selectorConfigs: SelectorConfig[] = config.get("selectorConfigs", []);
-
-  const selectorConfigs: SelectorConfig[] = [
-    // {
-    //   fileSelector: "\\.js$", // Targets JavaScript files with .js extension
-    //   textSelector: "(features|report_types):\\s*\\[\\s*(['\"](.*?)['\"],?\\s*)*\\]", // Matches content inside console.log()
-    // },
-    {
-      fileSelector: "\\.js$", // Targets JavaScript files with .js extension
-      textSelector: "report_types:\\s*\\[\\s*(['\"](.*?)['\"],?\\s*)*\\]", // Matches content inside console.log()
-    },
-    {
-      fileSelector: "\\.js$", // Targets JavaScript files with .js extension
-      textSelector: "features:\\s*\\[\\s*(['\"](.*?)['\"],?\\s*)*\\]", // Matches content inside console.log()
-    },
-  ];
+  // const selectorConfigs: SelectorConfig[] = [
+  //   // {
+  //   //   fileSelector: "\\.js$", // Targets JavaScript files with .js extension
+  //   //   textSelector: "(features|report_types):\\s*\\[\\s*(['\"](.*?)['\"],?\\s*)*\\]", // Matches content inside console.log()
+  //   // },
+  //   {
+  //     fileSelector: "\\.js$", // Targets JavaScript files with .js extension
+  //     textSelector: "report_types:\\s*\\[\\s*(['\"](.*?)['\"],?\\s*)*\\]", // Matches content inside console.log()
+  //   },
+  //   {
+  //     fileSelector: "\\.js$", // Targets JavaScript files with .js extension
+  //     textSelector: "features:\\s*\\[\\s*(['\"](.*?)['\"],?\\s*)*\\]", // Matches content inside console.log()
+  //   },
+  // ];
   const matchingConfigs = selectorConfigs.filter((config) => {
     const fileRegex = new RegExp(config.fileSelector);
     return fileRegex.test(document.fileName);
@@ -132,15 +120,10 @@ function updateOverlay(document: vscode.TextDocument) {
 
   if (allMatches.length > 0) {
     updateDecorations(document, allMatches);
-    // showWebviewPanel(allMatches);
   }
 }
 
 function updateDecorations(document: vscode.TextDocument, matches: string[]) {
-  // vscode.window.showInformationMessage(`🔍 : ${matches.join("\n")}\n`, { detail: "ok" });
-  // vscode.window.createTextEditorDecorationType({
-
-  // })
   const finalMatches = matches
     .map((m) => m.split("\n"))
     .flat()
@@ -156,22 +139,13 @@ function updateDecorations(document: vscode.TextDocument, matches: string[]) {
       isWholeLine: false,
     });
     const activeEditor = vscode.window.activeTextEditor;
-    // const position = new vscode.Position(0, 0);
     const range = new vscode.Range(i, 0, i, 0);
     const canRender = activeEditor && activeEditor.document === document;
-    console.log({ activeEditor, document, canRender });
+    // log({ activeEditor, document, canRender });
     if (canRender) {
       activeEditor.setDecorations(decoration, [range]);
     }
   });
-  // vscode.window.gu;
-
-  // const targetEditor = vscode.window.activeTextEditor.find((e) => e.document === document);
-  // const canRender = targetEditor && targetEditor.document === document;
-  // console.log({ activeEditor, targetEditor, document, canRender });
-  // if (targetEditor && targetEditor.document === document) {
-  //   targetEditor.setDecorations(decoration, [range]);
-  // }
 }
 
 export function deactivate() {

@@ -14,10 +14,54 @@
   "contributes": {
     "commands": [
       {
-        "command": "regex-overlay.helloWorld",
-        "title": "Hello World"
+        "command": "regex-overlay.check",
+        "title": "Check extension"
+      },
+      {
+        "command": "regex-overlay.toggleDebug",
+        "title": "Toggle Debug Mode"
+      },
+      {
+        "command": "regex-overlay.enable",
+        "title": "Enable Regex Overlay"
+      },
+      {
+        "command": "regex-overlay.disable",
+        "title": "Disable Regex Overlay"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Regex Overlay",
+      "properties": {
+        "regexOverlay.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Weather the overlay is enabled or not"
+        },
+        "regexOverlay.selectorConfigs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "fileSelector": {
+                "type": "string",
+                "description": "Regex to match file names"
+              },
+              "textSelector": {
+                "type": "string",
+                "description": "Regex to match text within files"
+              }
+            },
+            "required": [
+              "fileSelector",
+              "textSelector"
+            ]
+          },
+          "default": [],
+          "description": "Array of file and text selector configurations"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "yarn run compile",
