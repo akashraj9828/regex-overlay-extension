@@ -3,6 +3,8 @@
 ## Overview
 
 **Regex Overlay** is a Visual Studio Code extension designed to help developers highlight specific patterns in their code using regular expressions. By applying file and text-based selectors, the extension scans active text editors in the workspace, searches for matching text, and visually highlights the results in the editor.
+
+
 ![**alt text**](screenshots/image.png)
 
 ## Features
