@@ -2,7 +2,12 @@
   "name": "regex-overlay",
   "displayName": "Regex Overlay",
   "description": "Show regex matches as overlay on files",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "publisher": "akashraj9828",
+  "icon": "logo.png",
+  "repository": {
+    "url": "https://github.com/akashraj9828/regex-overlay-extension"
+  },
   "engines": {
     "vscode": "^1.93.0"
   },
