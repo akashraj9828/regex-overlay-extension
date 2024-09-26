@@ -141,25 +141,31 @@ function updateDecorations(document: vscode.TextDocument, matches: string[]) {
   // vscode.window.createTextEditorDecorationType({
 
   // })
-
-  vscode.window.setStatusBarMessage(`🔍 : ${matches.join("\t")}\t`, 5000);
-  // vscode.window.gu;
-  const decoration = vscode.window.createTextEditorDecorationType({
-    before: {
-      contentText: `🔍 : ${matches.join("\t")}\t`,
-      color: "#888888",
-      margin: "0 0 20px 0",
-    },
-    isWholeLine: false,
+  const finalMatches = matches
+    .map((m) => m.split("\n"))
+    .flat()
+    .map((e) => e.trim())
+    .filter((e) => e);
+  finalMatches.forEach((match, i) => {
+    const decoration = vscode.window.createTextEditorDecorationType({
+      before: {
+        contentText: `🔍 : ${match}\t`,
+        color: "#888888",
+        margin: "0 0 20px 0",
+      },
+      isWholeLine: false,
+    });
+    const activeEditor = vscode.window.activeTextEditor;
+    // const position = new vscode.Position(0, 0);
+    const range = new vscode.Range(i, 0, i, 0);
+    const canRender = activeEditor && activeEditor.document === document;
+    console.log({ activeEditor, document, canRender });
+    if (canRender) {
+      activeEditor.setDecorations(decoration, [range]);
+    }
   });
-  const activeEditor = vscode.window.activeTextEditor;
-  const position = new vscode.Position(0, 0);
-  const range = new vscode.Range(0, 0, 5, 0);
-  const canRender = activeEditor && activeEditor.document === document;
-  console.log({ activeEditor, document, canRender });
-  if (canRender) {
-    activeEditor.setDecorations(decoration, [range]);
-  }
+  // vscode.window.gu;
+
   // const targetEditor = vscode.window.activeTextEditor.find((e) => e.document === document);
   // const canRender = targetEditor && targetEditor.document === document;
   // console.log({ activeEditor, targetEditor, document, canRender });
